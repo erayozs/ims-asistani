@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="tr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>IMS Asistanı · Computer Integrated Manufacturing Systems</title>
+    <link rel="icon" href="assets/icon.svg" />
+    <link rel="stylesheet" href="css/style.css" />
+  </head>
+  <body>
+    <noscript>Bu uygulama JavaScript gerektirir.</noscript>
+
+    <!-- core (order matters) -->
+    <script src="js/core/ns.js"></script>
+    <script src="js/core/rng.js"></script>
+    <script src="js/core/frac.js"></script>
+    <script src="js/core/viz.js"></script>
+    <script src="js/core/runner.js"></script>
+
+    <!-- content: cheatsheet.js first (others append their own sections to IM.content.cheatsheet) -->
+    <script src="js/content/cheatsheet.js"></script>
+    <script src="js/content/ch1.js"></script>
+    <script src="js/content/ch2a.js"></script>
+    <script src="js/content/ch2b.js"></script>
+    <script src="js/content/ch3.js"></script>
+    <script src="js/content/ch4.js"></script>
+    <script src="js/content/ch5.js"></script>
+
+    <!-- generated exercises -->
+    <script src="js/drills/tlc-time.js"></script>
+    <script src="js/drills/lean-params.js"></script>
+    <script src="js/drills/vsm.js"></script>
+    <script src="js/drills/smed.js"></script>
+    <script src="js/drills/kanban.js"></script>
+    <script src="js/drills/mrp-graphic.js"></script>
+    <script src="js/drills/oee.js"></script>
+    <script src="js/drills/fms-mlt.js"></script>
+    <script src="js/drills/agv-count.js"></script>
+    <script src="js/drills/agv-rules.js"></script>
+    <script src="js/drills/agv-sim.js"></script>
+
+    <!-- app shell (last) -->
+    <script src="js/core/app.js"></script>
+  </body>
+</html>
