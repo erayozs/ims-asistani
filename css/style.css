@@ -118,6 +118,16 @@ h3.subsec { font-size: 14px; margin: 18px 0 8px; color: var(--muted, #8a94a6); f
 table.prog { border-collapse: collapse; width: 100%; max-width: 760px; background: var(--card); border-radius: 10px; overflow: hidden; border: 1px solid var(--line); font-size: 14px; }
 table.prog td, table.prog th { padding: 6px 10px; border-bottom: 1px solid var(--line); text-align: left; }
 table.prog th { background: var(--acc-soft); font-size: 12.5px; }
+.sync { max-width: 760px; margin-top: 14px; box-sizing: border-box; }
+.sync h3 { margin: 0 0 6px; font-size: 15px; }
+.sync p { margin: 0 0 10px; font-size: 13.6px; }
+.syncbtns { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 10px; }
+.syncmsg { font-size: 13px; font-weight: 550; }
+.syncmsg.ok { color: var(--good); }
+.syncmsg.bad { color: var(--bad); }
+.sync textarea { display: block; width: 100%; box-sizing: border-box; min-height: 64px; padding: 8px 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--bg); color: var(--ink); font: 13px/1.4 var(--mono); word-break: break-all; resize: vertical; }
+.sync textarea:focus { outline: 2px solid var(--acc); outline-offset: -1px; }
+@media (max-width: 760px) { .sync textarea { font-size: 16px; } } /* iOS: <16px odakta yakınlaştırır */
 
 /* ---------- topic */
 .tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-bottom: 16px; flex-wrap: wrap; }

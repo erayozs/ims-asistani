@@ -26,6 +26,15 @@
       renderNav();
     },
     reset() { store.write(PKEY, {}); renderNav(); },
+    // cihazlar arası taşıma (js/core/sync.js)
+    exportCode: () => IM.sync.encode({ p: store.read(PKEY), o: store.read(OKEY) }),
+    importCode(code) {
+      const r = IM.sync.merge({ p: store.read(PKEY), o: store.read(OKEY) }, IM.sync.decode(code));
+      store.write(PKEY, r.p);
+      store.write(OKEY, r.o);
+      renderNav();
+      return r;
+    },
   };
   IM.drillOpts = {
     get(id) {
@@ -96,7 +105,7 @@
   function scopeBanner() {
     return `<p class="exambar">📂 Kapsam: yalnızca paylaşılan ders dosyaları — Introduction to CIM · When CIM · Lean Manufacturing · Traditional–FMS comparison · AGV · CNC Machine Tools <span class="muted">(Robots, CNC programming ve sonrası yok)</span></p>`;
   }
-  function home() {
+  function home(syncMsg) {
     const drillCards = Object.keys(IM.chapters).map(Number).map((ch) => {
       const ids = IM.topics.filter((t) => t.ch === ch).flatMap((t) => t.drills).filter((id) => IM.drills[id]);
       return ids.length ? `<h3 class="subsec">${IM.chapters[ch]}</h3><div class="cards">${ids.map((id) => drillCard(IM.drills[id])).join('')}</div>` : '';
@@ -147,9 +156,54 @@
       ${drillCards || '<p class="muted">Yükleniyor…</p>'}
       <h2 class="sec">📈 İlerleme</h2>
       <table class="prog"><tr><th>Konu</th><th>Kavram testi</th><th>Alıştırmalar</th></tr>${rows}</table>
+      <div class="card sync">
+        <h3>📱 Cihazlar arası taşıma</h3>
+        <p class="muted">İlerleme yalnızca bu tarayıcıda saklanır. Telefona/bilgisayara taşımak için bu cihazda <b>Kodu kopyala</b>'ya bas,
+        diğer cihazda kodu kutuya yapıştırıp <b>Kodu yükle</b>'ye bas. Kayıtlar birleştirilir: her konu için daha çok soru çözülmüş kayıt kalır,
+        o yüzden kodu iki yönde de taşıyabilirsin.</p>
+        <div class="syncbtns">
+          <button class="btn primary sm" id="sync-copy">📋 Kodu kopyala</button>
+          <button class="btn sm" id="sync-load">📥 Kodu yükle</button>
+          <span class="syncmsg" role="status"></span>
+        </div>
+        <textarea id="sync-ta" rows="3" spellcheck="false" autocapitalize="off" autocomplete="off" autocorrect="off"
+          placeholder="Diğer cihazdan aldığın ilerleme kodunu buraya yapıştır…"></textarea>
+      </div>
       <p><button class="btn ghost sm" id="resetp">İlerlemeyi sıfırla</button></p>`;
     document.getElementById('resetp').addEventListener('click', () => {
       if (confirm('Tüm ilerleme kaydı silinsin mi?')) { IM.progress.reset(); home(); }
+    });
+    bindSync(syncMsg);
+  }
+
+  function bindSync(msg) {
+    const ta = document.getElementById('sync-ta');
+    const out = document.querySelector('.syncmsg');
+    const say = (text, ok) => { out.textContent = text; out.className = 'syncmsg ' + (ok ? 'ok' : 'bad'); };
+    if (msg) say(msg, true);
+    document.getElementById('sync-copy').addEventListener('click', async () => {
+      const code = IM.progress.exportCode();
+      ta.value = code;
+      const empty = !Object.keys(IM.progress.all()).length ? ' (henüz kayıtlı ilerleme yok)' : '';
+      try {
+        await navigator.clipboard.writeText(code);
+        say('Kod panoya kopyalandı ✓ Diğer cihazda yapıştır.' + empty, true);
+      } catch (e) {
+        ta.focus(); ta.select();
+        say('Kod kutuda — seçip kopyala.' + empty, true);
+      }
+    });
+    document.getElementById('sync-load').addEventListener('click', () => {
+      if (!ta.value.trim()) { say('Önce diğer cihazdan aldığın kodu kutuya yapıştır.', false); return; }
+      try {
+        const r = IM.progress.importCode(ta.value);
+        const parts = [];
+        if (r.added) parts.push(`${r.added} yeni kayıt`);
+        if (r.updated) parts.push(`${r.updated} kayıt güncellendi`);
+        home(parts.length ? `İlerleme yüklendi ✓ ${parts.join(', ')}.` : 'Bu cihaz zaten güncel ✓');
+      } catch (e) {
+        say(`Kod geçersiz: ${e.message}. Kodun tamamını kopyaladığından emin ol.`, false);
+      }
     });
   }
 

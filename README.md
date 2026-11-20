@@ -30,12 +30,14 @@ Ders kitabı (syllabus): Groover, M.P., 2022, *Automation, Production Systems an
 
 - Her konu: **Özet** · **Kavram Testi** · (varsa) **Alıştırma** (seed'li, her seferinde yeni sayılarla üretilen çok adımlı problemler)
 - **Karışık Quiz**, yazdırılabilir **Formül Kartı** (A4), ilerleme tablosu (localStorage `ims.*`)
+- **Cihazlar arası taşıma** (ana sayfa → İlerleme): *Kodu kopyala* / *Kodu yükle* — `IMS1-…` kodu ilerlemeyi telefona/bilgisayara taşır; kayıtlar birleştirilir (anahtar başına daha çok çözülmüş kayıt kalır), tekrar yüklemek sayıları katlamaz.
 - Bağlantı `#/d/<drill>/<seed>` aynı problemi tekrar açar.
 
 ## Testler
 
 ```sh
 export PATH=/opt/homebrew/bin:$PATH
+node tests/sync.test.js                       # ilerleme kodu: gidiş-dönüş, geçersiz kod, birleştirme (idempotent)
 node tests/core.test.js                       # Frac + ondalık gösterim, checkNum (yüzde, tolerans, tam sayı), viz
 node tests/content.test.js                    # özet ≥1500 karakter, konu başına ≥10 soru, açıklama, formül kartı
 node tests/drills.test.js all 60              # tüm üreticiler × seçenekler × 60 seed: yapı + süre + determinizm
