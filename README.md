@@ -28,6 +28,13 @@ Ders kitabı (syllabus): Groover, M.P., 2022, *Automation, Production Systems an
 
 `index.html` dosyasını tarayıcıda doğrudan açın (build, sunucu, internet gerekmez). İsterseniz: `python3 -m http.server 8931` → http://localhost:8931
 
+- **📝 Sınav Hazırlık** (`#/sinav`): hocanın sınavda çıkacağını söylediği 17 konu (AGV sayısı, israf türleri, lean araçlarının amaçları, Lean Roadmap, 5S, SMED, Kanban çalışma sistematiği, görsel yönetim, hücresel üretim, tek parça akışı, internal/external setup, push/pull, A3, Asakai/Oobeya/Andon/panolar/QCDSM, TPM içeriği, OEE, bakım stratejisi seçim kriterleri):
+  - **Konu anlatımı** + **Ezberlenecekler** + İngilizce **örnek sınav cevabı** + **tuzaklar**; yazdırılabilir **ezber kağıdı**
+  - **Ezber kartları** (aktif hatırlama, Leitner aralıklı tekrar; yazılan maddeler anahtar kelimeyle kontrol edilir, kullanıcı kendini puanlar)
+  - **Sınav simülasyonu**: tam sınav (17 soru, 100 puan, 100 dk; AGV ve OEE her zaman hesap sorusu), hızlı deneme, zayıf konular, seçili konular / konu mini sınavı.
+    Soru tipleri: açık uçlu (rubrik + otomatik ön işaretleme, kullanıcı onaylar), sıralama (LCS puanı), eşleştirme, sınıflandırma, çoktan seçmeli, yeni sayılarla hesaplama.
+    Cevaplar sınav bitene kadar gösterilmez; yarım sınav sayfa yenilenince korunur; sonuçta konu bazında puan ve zayıf konuların kartları tekrar sırasına alınır.
+  - Kaynak: `js/exam/` (lessons, bank, engine, store, ui). Durum `ims.exam.v1` (ilerleme koduna `x` olarak eklenir).
 - Her konu: **Özet** · **Kavram Testi** · (varsa) **Alıştırma** (seed'li, her seferinde yeni sayılarla üretilen çok adımlı problemler)
 - **Karışık Quiz**, yazdırılabilir **Formül Kartı** (A4), ilerleme tablosu (localStorage `ims.*`)
 - **Cihazlar arası taşıma** (ana sayfa → İlerleme): *Kodu kopyala* / *Kodu yükle* — `IMS1-…` kodu ilerlemeyi telefona/bilgisayara taşır; kayıtlar birleştirilir (anahtar başına daha çok çözülmüş kayıt kalır), tekrar yüklemek sayıları katlamaz.
@@ -37,7 +44,8 @@ Ders kitabı (syllabus): Groover, M.P., 2022, *Automation, Production Systems an
 
 ```sh
 export PATH=/opt/homebrew/bin:$PATH
-node tests/sync.test.js                       # ilerleme kodu: gidiş-dönüş, geçersiz kod, birleştirme (idempotent)
+node tests/sync.test.js                       # ilerleme kodu: gidiş-dönüş, geçersiz kod, birleştirme (idempotent), sınav durumu (x)
+node tests/exam.test.js                       # Sınav Hazırlık: şekil, örnek cevap ↔ rubrik, kartlar, hesap üreticileri, sınav kâğıdı, Leitner
 node tests/core.test.js                       # Frac + ondalık gösterim, checkNum (yüzde, tolerans, tam sayı), viz
 node tests/content.test.js                    # özet ≥1500 karakter, konu başına ≥10 soru, açıklama, formül kartı
 node tests/drills.test.js all 60              # tüm üreticiler × seçenekler × 60 seed: yapı + süre + determinizm

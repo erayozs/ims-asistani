@@ -27,11 +27,12 @@
     },
     reset() { store.write(PKEY, {}); renderNav(); },
     // cihazlar arası taşıma (js/core/sync.js)
-    exportCode: () => IM.sync.encode({ p: store.read(PKEY), o: store.read(OKEY) }),
+    exportCode: () => IM.sync.encode({ p: store.read(PKEY), o: store.read(OKEY), x: IM.examStore ? IM.examStore.get() : undefined }),
     importCode(code) {
-      const r = IM.sync.merge({ p: store.read(PKEY), o: store.read(OKEY) }, IM.sync.decode(code));
+      const r = IM.sync.merge({ p: store.read(PKEY), o: store.read(OKEY), x: IM.examStore ? IM.examStore.get() : undefined }, IM.sync.decode(code));
       store.write(PKEY, r.p);
       store.write(OKEY, r.o);
+      if (r.x && IM.examStore) IM.examStore.save(r.x);
       renderNav();
       return r;
     },
@@ -69,7 +70,8 @@
         <button class="menu" aria-label="Menü">☰</button>
         <a href="#/" class="brand"><span class="logo">IM</span><span class="bt">IMS Asistanı <small>Computer Integrated Manufacturing Systems</small></span></a>
         <nav class="topnav">
-          <a href="#/quiz">🎯 Karışık Quiz</a>
+          <a href="#/sinav" class="tn-exam">📝 Sınav Hazırlık</a>
+          <a href="#/quiz" class="tn-quiz">🎯 Karışık Quiz</a>
           <a href="#/cheat">📇 Formül Kartı</a>
         </nav>
       </header>
@@ -86,6 +88,7 @@
     if (!side) return;
     const cur = location.hash;
     let h = `<a class="nav-home" href="#/">🏠 Ana sayfa</a>`;
+    if (IM.examUI) h += IM.examUI.nav(cur);
     Object.keys(IM.chapters).map(Number).forEach((ch) => {
       h += `<div class="nav-ch">${IM.chapters[ch]}</div>`;
       IM.topics.filter((t) => t.ch === ch).forEach((t) => {
@@ -138,6 +141,7 @@
         <b>CIM'e giriş</b> ve <b>CIM ne zaman uygulanmalı</b>, <b>Lean Manufacturing</b> (VSM, 5S, SMED, Kanban, TPM, OEE),
         <b>FMS ile geleneksel sistemlerin ekonomik karşılaştırması</b>, <b>AGV</b>'ler ve <b>CNC tezgâhları</b>.</p>
         ${scopeBanner()}
+        ${IM.examUI ? `<a class="xbanner" href="#/sinav"><b>📝 Sınav Hazırlık</b> — hocanın söylediği 17 konu: konu anlatımı, ezber kartları ve süreli sınav simülasyonu <span class="dgo">Başla →</span></a>` : ''}
         <div class="how">
           <div><b>1 · Özet</b><br>Her konunun Türkçe özeti; terimler sınavdaki gibi İngilizce (<i>takt time</i>, <i>kanban</i>, <i>MLT</i>…).</div>
           <div><b>2 · Kavram Testi</b><br>Slaytlardaki tanım, liste ve örneklere dayalı çoktan seçmeli sorular, açıklamalı.</div>
@@ -184,7 +188,8 @@
     document.getElementById('sync-copy').addEventListener('click', async () => {
       const code = IM.progress.exportCode();
       ta.value = code;
-      const empty = !Object.keys(IM.progress.all()).length ? ' (henüz kayıtlı ilerleme yok)' : '';
+      const xs = IM.examStore ? IM.examStore.get() : { cards: {}, attempts: [] };
+      const empty = !Object.keys(IM.progress.all()).length && !Object.keys(xs.cards).length && !xs.attempts.length ? ' (henüz kayıtlı ilerleme yok)' : '';
       try {
         await navigator.clipboard.writeText(code);
         say('Kod panoya kopyalandı ✓ Diğer cihazda yapıştır.' + empty, true);
@@ -413,12 +418,14 @@
   // ------------------------------------------------------------ router
   function route() {
     const parts = (location.hash.slice(1) || '/').split('/').filter(Boolean);
+    if (IM.examUI) IM.examUI.stop();
     document.body.classList.remove('nav-open');
     if (!parts.length) home();
     else if (parts[0] === 't') topicPage(parts[1], parts[2]);
     else if (parts[0] === 'd') drillPage(parts[1], parts[2]);
     else if (parts[0] === 'quiz') { if (quizSession && parts[1] === 'run') runQuizItem(); else quizPage(); }
     else if (parts[0] === 'cheat') cheatPage();
+    else if (parts[0] === 'sinav' && IM.examUI) IM.examUI.route(main, parts.slice(1));
     else home();
     renderNav();
     window.scrollTo(0, 0);
@@ -426,6 +433,7 @@
 
   document.addEventListener('DOMContentLoaded', () => {
     shell();
+    if (IM.examUI) IM.examUI.onChange = renderNav;
     window.addEventListener('hashchange', route);
     route();
   });

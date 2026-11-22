@@ -75,4 +75,44 @@ eq(S.merge(b, a).p.k, b.p.k, 'eşit t: eski olan ezmez');
 // boş yerel durum
 eq(S.merge({ p: {}, o: {} }, phone).p, phone.p, 'boş cihaza yükleme');
 
+// ---- Sınav Hazırlık durumu (x): kartlar, denemeler, okundu işaretleri
+const pt = { agv: [10, 14], oee: [6, 12] };
+const xPhone = {
+  cards: { waste7: { box: 3, n: 4, ok: 3, last: 500, due: 900 }, '5s': { box: 1, n: 1, ok: 0, last: 400, due: 400 } },
+  attempts: [{ at: 1000, mode: 'quick', got: 16, max: 26, used: 900, pt }],
+  read: { agv: 100 },
+};
+const xLaptop = {
+  cards: { waste7: { box: 2, n: 2, ok: 1, last: 800, due: 1400 }, smed: { box: 2, n: 1, ok: 1, last: 300, due: 900 } },
+  attempts: [{ at: 2000, mode: 'full', got: 70, max: 140, pt: { tpm: [4, 8] } }],
+  read: { oee: 200, agv: 50 },
+};
+const cx = S.encode({ p: phone.p, o: phone.o, x: xPhone });
+eq(S.decode(cx).x, xPhone, 'x gidiş-dönüş');
+ok(!('x' in S.decode(S.encode({ p: {}, o: {}, x: { cards: {}, attempts: [], read: {} } }))), 'boş x koda eklenmez');
+const mx = S.merge({ p: laptop.p, o: laptop.o, x: xLaptop }, S.decode(cx));
+eq(mx.x.cards.waste7, xPhone.cards.waste7, 'kart: daha çok tekrarlı kayıt kalır');
+eq(mx.x.cards.smed, xLaptop.cards.smed, 'kart: yalnız yereldeki korunur');
+eq(mx.x.cards['5s'], xPhone.cards['5s'], 'kart: yalnız gelendeki eklenir');
+eq(mx.x.attempts.map((x) => x.at), [1000, 2000], 'denemeler birleşir, zamana göre sıralı');
+eq(mx.x.read, { oee: 200, agv: 100 }, 'okundu: en yeni zaman');
+const mx2 = S.merge({ p: mx.p, o: mx.o, x: mx.x }, S.decode(S.encode({ p: mx.p, o: mx.o, x: mx.x })));
+eq(mx2.x, mx.x, 'x: aynı kodu tekrar yüklemek değiştirmez');
+ok(mx2.added === 0 && mx2.updated === 0, 'x: tekrar yüklemede sayaç 0');
+// bozuk x kayıtları ayıklanır
+const dx = S.decode('IMS1-' + Buffer.from(JSON.stringify({ v: 1, p: {}, x: {
+  cards: { ok1: { box: 2, n: 1, ok: 1, last: 1, due: 2 }, bad1: { box: 9, n: 1, ok: 1, last: 1, due: 2 }, bad2: 'x' },
+  attempts: [{ at: 5, mode: 'full', got: 3, max: 4, pt: { a: [1, 2] } }, { at: 6, mode: 'full', got: 5, max: 4, pt: { a: [3, 2] } }, null],
+  read: { a: 1, b: 'x' },
+} })).toString('base64'));
+eq(Object.keys(dx.x.cards), ['ok1'], 'x: geçersiz kart atılır');
+eq(dx.x.attempts.length, 1, 'x: geçersiz deneme atılır');
+eq(dx.x.read, { a: 1 }, 'x: geçersiz okundu atılır');
+// x'siz eski kod x'li cihaza yüklenince yerel x korunur
+const keep = S.merge({ p: {}, o: {}, x: xLaptop }, S.decode(S.encode(phone)));
+eq(keep.x.cards, xLaptop.cards, 'eski kod yerel x\'i silmez');
+// en çok 30 deneme tutulur
+const many = { cards: {}, attempts: Array.from({ length: 40 }, (_, i) => ({ at: i + 1, mode: 'quick', got: 1, max: 2, pt: { a: [1, 2] } })), read: {} };
+ok(S.merge({ p: {}, o: {} }, S.decode(S.encode({ p: {}, o: {}, x: many }))).x.attempts.length === 30, 'en çok 30 deneme');
+
 console.log(`sync OK (${checks} checks)`);
